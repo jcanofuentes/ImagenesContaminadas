@@ -63,7 +63,26 @@ void loadReport(String fileName)
 
 void draw()
 {
-  //println(" SO2: " + SO2);
+  /*
+   SO2   (dióxido de azufre):    0 - 125 mg/m3    FX: INVERT RGB / GREEN
+   NO    (monóxido de azufre):   0 - 30 mg/m3     FX: SHIFT GLITCH
+   NO2   (dióxido de azufre) :   0 - 40 mg/m3     FX: GOO
+   CO    (monóxido de carbono) : 10 mg/m3.        FX: COLOR PASS
+   PM25  (P. mater < 2.5 micras):0 - 25 μg/m3     FX: DISPLACE / Y (Centrado en 0.5)
+   PM10  (P. mater < 10 micras): 0 - 50 lg/m3     FX: DISPLACE / X (Centrado en 0.5)
+   BEN   (benzeno):              5 lg/m3          FX: INVERT RGB / RED
+   O3    (Ozono):                100 μg/m3        FX: INVERT RGB / BLUE
+   */
+
+  // Map values to 0,1
+  float v1 = map( SO2, 0, 125, 0.0f, 1f );// SO2
+  float v2 = map( NO, 0, 30, 0.0f, 1f ); // NO
+  float v3 = map( NO2, 0, 40, 0.0f, 1f ); // NO2
+  float v4 = map( CO, 0, 10, 0.0f, 1f ); // 03
+  float v5 = map( PM25, 0, 25, 0.0f, 1f ); // PM25
+  float v6 = map( PM10, 0, 50, 0.0f, 1f ); // PM10
+  float v7 = map( O3, 0, 5, 0.0f, 1f ); // Be
+  float v8 = map( BEN, 0, 100, 0.0f, 1f ); // C0
 }
 
 void aniStart() {
