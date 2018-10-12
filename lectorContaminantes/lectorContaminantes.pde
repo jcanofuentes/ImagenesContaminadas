@@ -1,4 +1,12 @@
+//------------------------------------------------------------------------
+// DESCRIPTION :
+//      Read contaminants data from XLS data sheets and send measurements
+//      through OSC to Resolume
+//------------------------------------------------------------------------
+// Import libraries
 import de.looksgood.ani.*;
+import oscP5.*;
+import netP5.*;
 
 // Managing reports and measurements
 ArrayList <Report> reports = new ArrayList();
@@ -15,12 +23,19 @@ float PM10 = -10.0f;
 float O3 = -10.0f;
 float BEN = -10.0f;
 
+// Other
 float duration = 0.1f; 
+OscP5 oscP5;
+NetAddress myRemoteLocation;
 
 void setup ()
 {
   size( 600, 400 );
-
+  
+  // Init OSC
+  oscP5 = new OscP5(this, 12000);
+  myRemoteLocation = new NetAddress("127.0.0.1", 7000);
+  
   println("----------------------------------------------------------------");
   println("Imagenes Contaminadas v1  - Oct 2018");
   println("----------------------------------------------------------------");
@@ -75,14 +90,20 @@ void draw()
    */
 
   // Map values to 0,1
-  float v1 = map( SO2, 0, 125, 0.0f, 1f );// SO2
-  float v2 = map( NO, 0, 30, 0.0f, 1f ); // NO
-  float v3 = map( NO2, 0, 40, 0.0f, 1f ); // NO2
-  float v4 = map( CO, 0, 10, 0.0f, 1f ); // 03
-  float v5 = map( PM25, 0, 25, 0.0f, 1f ); // PM25
-  float v6 = map( PM10, 0, 50, 0.0f, 1f ); // PM10
-  float v7 = map( O3, 0, 5, 0.0f, 1f ); // Be
-  float v8 = map( BEN, 0, 100, 0.0f, 1f ); // C0
+  float v1 = map( SO2, 0, 125, 0.0f, 1f );
+  float v2 = map( NO, 0, 30, 0.0f, 1f );
+  float v3 = map( NO2, 0, 40, 0.0f, 1f );
+  float v4 = map( CO, 0, 10, 0.0f, 1f );
+  float v5 = map( PM25, 0, 25, 0.0f, 1f );
+  float v6 = map( PM10, 0, 50, 0.0f, 1f );
+  float v7 = map( BEN, 0, 5, 0.0f, 1f );
+  float v8 = map( O3, 0, 100, 0.0f, 1f );
+  
+  // Send data through OSC
+  //OscMessage myMessage = new OscMessage("/composition/selectedclip/video/effects/goo/opacity");
+  //myMessage.add(v1);
+  //oscP5.send(myMessage, myRemoteLocation); 
+  
 }
 
 void aniStart() {
