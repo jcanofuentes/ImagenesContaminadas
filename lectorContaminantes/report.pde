@@ -31,6 +31,7 @@ class Report {
       }
       xlsReader.nextCell();
     }
+    stationName = trim(stationName);
     println ("StationName: " + stationName);
 
     // Get data
