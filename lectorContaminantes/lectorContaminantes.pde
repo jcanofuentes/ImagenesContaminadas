@@ -35,7 +35,7 @@ boolean O3_show = true;
 boolean BEN_show = true;
 
 // Other
-float duration = .1f; 
+float duration = .5f; 
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 Spout spout;
@@ -57,16 +57,35 @@ void setup ()
   println("Imagenes Contaminadas v1  - Oct 2018");
   println("----------------------------------------------------------------");
 
-  loadReport("informeHorario_Argentina_20180923-044043.xls");
-  loadReport("informeHorario_Argentina_20180923-044911.xls");
-  loadReport("informeHorario_Cangas del Narcea_20180923-044528.xls");
-  loadReport("informeHorario_Castilla_20180924-095636.xls");
-  loadReport("informeHorario_Llano Ponte_20180924-095952.xls");
-  loadReport("informeHorario_Matadero_20180923-043851.xls");
-  loadReport("informeHorario_Matadero_20180923-044225.xls");
-  loadReport("informeHorario_Montevil_20180923-044426.xls");
-  loadReport("informeHorario_Salinas_20180923-043450.xls");
 
+  loadReport("informeHorario_Montevil_20180923-044426.xls");
+  loadReport("informeHorario_Montevil_20180923-044426_2.xls");
+  loadReport("informeHorario_Montevil_20180923-044426_3.xls");
+  loadReport("informeHorario_Matadero_20180923-043851.xls");
+  loadReport("informeHorario_Matadero_20180923-043851_2.xls");
+  loadReport("informeHorario_Matadero_20180923-043851_3.xls");
+  loadReport("informeHorario_Matadero_20180923-044225.xls");
+  loadReport("informeHorario_Matadero_20180923-044225_2.xls");
+  loadReport("informeHorario_Llano Ponte_20180924-095952.xls");
+  loadReport("informeHorario_Llano Ponte_20180924-095952_2.xls");
+  loadReport("informeHorario_Llano Ponte_20180924-095952_3.xls");
+  loadReport("informeHorario_Cangas del Narcea_20180923-044528.xls");
+  loadReport("informeHorario_Cangas del Narcea_20180923-044528_2.xls");
+  loadReport("informeHorario_Salinas_20180923-043450.xls");
+  loadReport("informeHorario_Salinas_20180923-043450_2.xls");
+  loadReport("informeHorario_Castilla_20180924-095636.xls");
+  loadReport("informeHorario_Argentina_20180923-044911.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_2.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_3.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_4.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_5.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_6.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_7.xls");
+  loadReport("informeHorario_Argentina_20180923-044911_8.xls");
+  loadReport("informeHorario_Argentina_20180923-044043.xls");
+  loadReport("informeHorario_Argentina_20180923-044043_2.xls");
+  loadReport("informeHorario_Plaza de Toros_20181014-082010.xls");
+  
   println("All data loaded!");
   println("----------------------------------------------------------------");
 
@@ -117,11 +136,11 @@ void draw()
    SO2   (dióxido de azufre):    0 - 125 mg/m3    FX: INVERT RGB / GREEN
    NO    (monóxido de azufre):   0 - 30 mg/m3     FX: SHIFT GLITCH
    NO2   (dióxido de azufre) :   0 - 40 mg/m3     FX: GOO
-   CO    (monóxido de carbono) : 10 mg/m3.        FX: COLOR PASS
+   CO    (monóxido de carbono) : 0 - 10 mg/m3.        FX: Contrast
    PM25  (P. mater < 2.5 micras):0 - 25 μg/m3     FX: DISPLACE / Y (Centrado en 0.5)
    PM10  (P. mater < 10 micras): 0 - 50 lg/m3     FX: DISPLACE / X (Centrado en 0.5)
-   BEN   (benzeno):              5 lg/m3          FX: INVERT RGB / RED
-   O3    (Ozono):                100 μg/m3        FX: INVERT RGB / BLUE
+   BEN   (benzeno):              0 - 5 lg/m3          FX: INVERT RGB / RED
+   O3    (Ozono):                0 - 100 μg/m3        FX: INVERT RGB / BLUE
    */
 
   // Invert RGB - Green
@@ -136,9 +155,10 @@ void draw()
   float v3 = map( NO2, 0, 40, 0.0f, 1f );
   sendOSCValue(NO2, v3, "/layer1/video/effect3/param3/values"); 
 
-  // Colour pass - Hue 1
-  float v4 = map( CO, 0, 10, 0.0f, 1f );
-  sendOSCValue(CO, v4, "/layer1/video/effect4/opacity/values"); 
+  // Contrast
+  float v4 = map( CO, 0, 10, 0.5f, 1f );
+  //v4 = 1.0f - v4;
+  sendOSCValue(CO, v4, "/layer1/video/effect4/param2/values"); 
 
   // Displace - y factor
   float v5 = map( PM25, 0, 25, 0.45f, 0.55f );
@@ -182,7 +202,7 @@ void draw()
   displayInfo.background(0, 0);
   displayInfo.fill(0);
   displayInfo.pushMatrix();
-  
+
   displayInfo.translate(640-224, 200);
   displayInfo.rectMode(CENTER);
   displayInfo.rect(0, 0, 200, 52);
