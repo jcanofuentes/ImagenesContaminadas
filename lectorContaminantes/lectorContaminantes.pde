@@ -8,6 +8,7 @@ import de.looksgood.ani.*;
 import oscP5.*;
 import netP5.*;
 import spout.*;
+import themidibus.*;
 
 // Managing reports and measurements
 ArrayList <Report> reports = new ArrayList();
@@ -24,12 +25,23 @@ float PM10 = -10.0f;
 float O3 = -10.0f;
 float BEN = -10.0f;
 
+boolean SO2_show = true;
+boolean NO_show = true;
+boolean NO2_show = true;
+boolean CO_show = true;
+boolean PM25_show = true;
+boolean PM10_show = true;
+boolean O3_show = true;
+boolean BEN_show = true;
+
 // Other
 float duration = .5f; 
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 Spout spout;
 PGraphics displayInfo;
+MidiBus myBus;
+
 //------------------------------------------------------------------------
 // setup()
 //------------------------------------------------------------------------
@@ -54,6 +66,7 @@ void setup ()
   loadReport("informeHorario_Matadero_20180923-044225.xls");
   loadReport("informeHorario_Montevil_20180923-044426.xls");
   loadReport("informeHorario_Salinas_20180923-043450.xls");
+
   println("All data loaded!");
   println("----------------------------------------------------------------");
 
@@ -77,11 +90,14 @@ void setup ()
   OscMessage myMessage = new OscMessage(message);
   myMessage.add(1);
   oscP5.send(myMessage, myRemoteLocation);
-    
+
   // PGraphics
-  displayInfo = createGraphics(256, 64);
+  displayInfo = createGraphics(1280, 128);
   spout = new Spout(this);
   spout.createSender("IC_DisplayInfo");
+
+  // MIDI
+  myBus = new MidiBus(this, "LPD8", -1); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
 }
 //------------------------------------------------------------------------
 // loadReport()
@@ -122,7 +138,7 @@ void draw()
 
   // Colour pass - Hue 1
   float v4 = map( CO, 0, 10, 0.0f, 1f );
-  sendOSCValue(CO, v4, "/layer1/video/effect4/param1/values"); 
+  sendOSCValue(CO, v4, "/layer1/video/effect4/opacity/values"); 
 
   // Displace - y factor
   float v5 = map( PM25, 0, 25, 0.45f, 0.55f );
@@ -131,63 +147,123 @@ void draw()
     OscMessage myMessage = new OscMessage("/layer1/video/effect5/param2/values");
     myMessage.add(random(0.45f, 0.55f));
     oscP5.send(myMessage, myRemoteLocation);
-    println("no data, get random value on displace y");
+    //println("no data, get random value on displace y");
   } else {
     OscMessage myMessage = new OscMessage("/layer1/video/effect5/param2/values");
     myMessage.add(v5);
     oscP5.send(myMessage, myRemoteLocation);
   }
+
   // Displace - x factor
   float v6 = map( PM10, 0, 50, 0.45f, 0.55f );
   if ( PM10 == 0.0f || PM10 == 9999f )
   {
-    OscMessage myMessage = new OscMessage("/layer1/video/effect5/param1/values");
+    OscMessage myMessage = new OscMessage("/layer1/video/effect8/param1/values");
     myMessage.add(random(0.45f, 0.55f));
     oscP5.send(myMessage, myRemoteLocation);
-    println("no data, get random value on displace x");
+    //println("no data, get random value on displace x");
   } else {
-    OscMessage myMessage = new OscMessage("/layer1/video/effect5/param1/values");
+    OscMessage myMessage = new OscMessage("/layer1/video/effect8/param1/values");
     myMessage.add(v6);
     oscP5.send(myMessage, myRemoteLocation);
   }
 
   // Invert RGB - Red
   float v7 = map( BEN, 0, 5, 0.0f, 1f );
-  sendOSCValue(BEN, v7, "/layer1/video/effect1/param1/values"); 
-  
+  sendOSCValue(BEN, v7, "/layer1/video/effect6/param1/values"); 
+
   // Invert RGB - Blue
   float v8 = map( O3, 0, 100, 0.0f, 1f );
-  sendOSCValue(O3, v8, "/layer1/video/effect1/param3/values");
+  sendOSCValue(O3, v8, "/layer1/video/effect7/param3/values");
 
   // Display info
   Measurement m = reports.get(currentReport).getMeasurement(currentMeasurement);
-  String message = reports.get(currentReport).stationName + "      " + m.date + " " + m.hour;
+  String message = reports.get(currentReport).stationName + "      " + m.date + " " + m.hour + "h";
 
   displayInfo.beginDraw();
-  displayInfo.background(0);
+  displayInfo.background(0, 0);
+  displayInfo.fill(0);
+  displayInfo.rect(0, 0, 270, 32);
+  displayInfo.fill(255);
   displayInfo.text(message, 10, 20);
+
+  displayInfo.pushStyle();
+  displayInfo.rectMode(CENTER);
+  displayInfo.noStroke();
+
+  int x = 265;
+  String name = "SO2";
+  String units = "(µg/m³)";
+  contaminantInfo(  x, name, units, SO2, SO2_show );
+
+  x = 366;
+  name = "NO";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, NO, NO_show );
+
+  x = 467;
+  name = "NO2";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, NO2, NO2_show );
+
+  x = 568;
+  name = "CO";
+  units = "(mg/m³)";
+  contaminantInfo(  x, name, units, CO, CO_show );
+
+  x = 669;
+  name = "PM25";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, PM25, PM25_show );
+
+  x = 770;
+  name = "PM10";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, PM10, PM10_show );
+
+  x = 871;
+  name = "O3";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, O3, O3_show );
+
+  x = 972;
+  name = "BEN";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, BEN, BEN_show );
+
+  displayInfo.popStyle();
   displayInfo.endDraw();
 
   image(displayInfo, 0, 0);
-  
+
   spout.sendTexture(displayInfo);
 }
 
 //------------------------------------------------------------------------
-// sendOSCValue()
+// contaminantInfo()
 //------------------------------------------------------------------------
-void sendOSCValue( float value, float normalizedValue, String OSCMessage )
+void contaminantInfo( int x, String name, String units, float currentValue, boolean show )
 {
-  if ( value == 0.0f || value == 9999f )
+  displayInfo.fill(0);
+  displayInfo.rect(x, 64, 60, 70);
+  displayInfo.fill(255);
+  displayInfo.textAlign(CENTER, CENTER);
+  displayInfo.textSize(14);
+  displayInfo.text(name, x, 64 - 24);
+  displayInfo.textSize(10);
+  displayInfo.text(units, x, 64 - 10);
+
+  if (currentValue == 0.0f || currentValue == 9999.0f)
   {
-    OscMessage myMessage = new OscMessage(OSCMessage);
-    myMessage.add(random(0.0f, 1.0f));
-    oscP5.send(myMessage, myRemoteLocation);
-    println("no data, get random value");
+    displayInfo.text("NO DATA", x, 64 +10);
   } else {
-    OscMessage myMessage = new OscMessage(OSCMessage);
-    myMessage.add(normalizedValue);
-    oscP5.send(myMessage, myRemoteLocation);
+    displayInfo.text(currentValue, x, 64 +10);
+  }
+
+  if (!show)
+  {
+    displayInfo.fill(0, 220);
+    displayInfo.rect(x, 64, 60, 70);
   }
 }
 
@@ -209,6 +285,7 @@ void keyPressed()
   {
   }
 }
+
 //------------------------------------------------------------------------
 // Ani callbacks
 //------------------------------------------------------------------------
@@ -216,7 +293,7 @@ void aniStart() {
 }
 
 void aniEnd() {
-  // Move index
+  // Move index / get next measurement
   currentMeasurement++;
   Measurement m = reports.get(currentReport).getMeasurement(currentMeasurement);
   if (m == null)
@@ -232,7 +309,7 @@ void aniEnd() {
     String message = "/track" + (currentReport + 1) + "/connect";
     OscMessage myMessage = new OscMessage(message);
     myMessage.add(1);
-    oscP5.send(myMessage, myRemoteLocation);
+    //oscP5.send(myMessage, myRemoteLocation);
   }
 
   Ani.to(this, duration, "SO2", m.SO2, Ani.LINEAR);
@@ -243,4 +320,90 @@ void aniEnd() {
   Ani.to(this, duration, "PM10", m.PM10, Ani.LINEAR);
   Ani.to(this, duration, "O3", m.O3, Ani.LINEAR);
   Ani.to(this, duration, "BEN", m.BEN, Ani.LINEAR, "onStart:aniStart, onEnd:aniEnd");
+}
+
+//------------------------------------------------------------------------
+// OSC and MIDI communication
+//------------------------------------------------------------------------
+void sendOSCValue( float value, float normalizedValue, String OSCMessage )
+{
+  if ( value == 0.0f || value == 9999f )
+  {
+    OscMessage myMessage = new OscMessage(OSCMessage);
+    myMessage.add(random(0.0f, 1.0f));
+    oscP5.send(myMessage, myRemoteLocation);
+    //println("no data, get random value");
+  } else {
+    OscMessage myMessage = new OscMessage(OSCMessage);
+    myMessage.add(normalizedValue);
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+}
+
+void oscEvent(OscMessage theOscMessage) {
+}
+
+void noteOn(int channel, int pitch, int velocity) {
+}
+
+void noteOff(int channel, int pitch, int velocity) {
+  if ( pitch == 40 )
+  {
+    NO2_show = !NO2_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect2/bypassed");
+    myMessage.add(int(!NO2_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 41 )
+  {
+    NO_show = !NO_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect3/bypassed");
+    myMessage.add(int(!NO_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 42 )
+  {
+    CO_show = !CO_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect4/bypassed");
+    myMessage.add(int(!CO_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 43 )
+  {
+    PM25_show = !PM25_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect5/bypassed");
+    myMessage.add(int(!PM25_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 36 )
+  {
+    BEN_show = !BEN_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect6/bypassed");
+    myMessage.add(int(!BEN_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 37 )
+  {
+    SO2_show = !SO2_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect1/bypassed");
+    myMessage.add(int(!SO2_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 38 )
+  {
+    O3_show = !O3_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect7/bypassed");
+    myMessage.add(int(!O3_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+  if ( pitch == 39 )
+  {
+    PM10_show = !PM10_show;
+    OscMessage myMessage = new OscMessage("/layer1/video/effect8/bypassed");
+    myMessage.add(int(!PM10_show));
+    oscP5.send(myMessage, myRemoteLocation);
+  }
+}
+
+void controllerChange(int channel, int number, int value) {
 }
