@@ -35,7 +35,7 @@ boolean O3_show = true;
 boolean BEN_show = true;
 
 // Other
-float duration = .5f; 
+float duration = .1f; 
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 Spout spout;
@@ -47,7 +47,7 @@ MidiBus myBus;
 //------------------------------------------------------------------------
 void setup ()
 {
-  size( 256, 256, P2D );
+  size( 32, 32, P2D );
 
   // Init OSC
   oscP5 = new OscP5(this, 12000);
@@ -92,7 +92,7 @@ void setup ()
   oscP5.send(myMessage, myRemoteLocation);
 
   // PGraphics
-  displayInfo = createGraphics(1280, 128);
+  displayInfo = createGraphics(1280, 256);
   spout = new Spout(this);
   spout.createSender("IC_DisplayInfo");
 
@@ -177,24 +177,37 @@ void draw()
   sendOSCValue(O3, v8, "/layer1/video/effect7/param3/values");
 
   // Display info
-  Measurement m = reports.get(currentReport).getMeasurement(currentMeasurement);
-  String message = reports.get(currentReport).stationName + "      " + m.date + " " + m.hour + "h";
-
   displayInfo.beginDraw();
+
   displayInfo.background(0, 0);
   displayInfo.fill(0);
-  displayInfo.rect(0, 0, 270, 32);
+  displayInfo.pushMatrix();
+  
+  displayInfo.translate(640-224, 200);
+  displayInfo.rectMode(CENTER);
+  displayInfo.rect(0, 0, 200, 52);
   displayInfo.fill(255);
-  displayInfo.text(message, 10, 20);
-
+  Measurement m = reports.get(currentReport).getMeasurement(currentMeasurement);
+  String message = reports.get(currentReport).stationName;
+  displayInfo.translate(0, -14);
+  displayInfo.pushStyle();
+  displayInfo.textSize(16);
+  displayInfo.text(message, 0, 0);
+  displayInfo.popStyle();
+  displayInfo.textAlign(CENTER, CENTER);
+  displayInfo.textSize(12);
+  message = m.date + " " + m.hour + "h";
+  displayInfo.translate(0, 6);
+  displayInfo.text(message, 0, 20);
+  displayInfo.popMatrix();
   displayInfo.pushStyle();
   displayInfo.rectMode(CENTER);
   displayInfo.noStroke();
 
   int x = 265;
-  String name = "SO2";
+  String name = "NO2";
   String units = "(µg/m³)";
-  contaminantInfo(  x, name, units, SO2, SO2_show );
+  contaminantInfo(  x, name, units, NO2, NO2_show );
 
   x = 366;
   name = "NO";
@@ -202,24 +215,27 @@ void draw()
   contaminantInfo(  x, name, units, NO, NO_show );
 
   x = 467;
-  name = "NO2";
-  units = "(µg/m³)";
-  contaminantInfo(  x, name, units, NO2, NO2_show );
-
-  x = 568;
   name = "CO";
   units = "(mg/m³)";
   contaminantInfo(  x, name, units, CO, CO_show );
 
-  x = 669;
+  x = 568;
   name = "PM25";
   units = "(µg/m³)";
   contaminantInfo(  x, name, units, PM25, PM25_show );
 
-  x = 770;
-  name = "PM10";
+  displayInfo.translate(0, 70);
+  displayInfo.translate(-404, 0);
+
+  x = 669;
+  name = "BEN";
   units = "(µg/m³)";
-  contaminantInfo(  x, name, units, PM10, PM10_show );
+  contaminantInfo(  x, name, units, BEN, BEN_show );
+
+  x = 770;
+  name = "SO2";
+  units = "(µg/m³)";
+  contaminantInfo(  x, name, units, SO2, SO2_show );
 
   x = 871;
   name = "O3";
@@ -227,9 +243,9 @@ void draw()
   contaminantInfo(  x, name, units, O3, O3_show );
 
   x = 972;
-  name = "BEN";
+  name = "PM10";
   units = "(µg/m³)";
-  contaminantInfo(  x, name, units, BEN, BEN_show );
+  contaminantInfo(  x, name, units, PM10, PM10_show );
 
   displayInfo.popStyle();
   displayInfo.endDraw();
@@ -244,26 +260,28 @@ void draw()
 //------------------------------------------------------------------------
 void contaminantInfo( int x, String name, String units, float currentValue, boolean show )
 {
+  if (!show)
+    return;
   displayInfo.fill(0);
-  displayInfo.rect(x, 64, 60, 70);
+  displayInfo.rect(x, 64, 60, 60, 6);
   displayInfo.fill(255);
   displayInfo.textAlign(CENTER, CENTER);
   displayInfo.textSize(14);
-  displayInfo.text(name, x, 64 - 24);
+  displayInfo.text(name, x, 64 - 18);
   displayInfo.textSize(10);
-  displayInfo.text(units, x, 64 - 10);
+  displayInfo.text(units, x, 64 - 4);
 
   if (currentValue == 0.0f || currentValue == 9999.0f)
   {
-    displayInfo.text("NO DATA", x, 64 +10);
+    displayInfo.text("NO DATA", x, 64 +14);
   } else {
-    displayInfo.text(currentValue, x, 64 +10);
+    displayInfo.text(currentValue, x, 64 +14);
   }
 
   if (!show)
   {
-    displayInfo.fill(0, 220);
-    displayInfo.rect(x, 64, 60, 70);
+    displayInfo.fill(0, 240);
+    displayInfo.rect(x, 64, 60, 60, 5);
   }
 }
 
@@ -309,7 +327,7 @@ void aniEnd() {
     String message = "/track" + (currentReport + 1) + "/connect";
     OscMessage myMessage = new OscMessage(message);
     myMessage.add(1);
-    //oscP5.send(myMessage, myRemoteLocation);
+    oscP5.send(myMessage, myRemoteLocation);
   }
 
   Ani.to(this, duration, "SO2", m.SO2, Ani.LINEAR);
